@@ -11,7 +11,7 @@ from bpy.types import (Node, NodeFrame, NodeGroup, NodeSocket, ShaderNode,
                        ShaderNodeBsdfGlass, ShaderNodeBsdfPrincipled,
                        ShaderNodeBsdfTransparent, ShaderNodeBump,
                        ShaderNodeGroup, ShaderNodeMath, ShaderNodeMixShader,
-                       ShaderNodeOutputMaterial, ShaderNodeRGBCurve,
+                       ShaderNodeMix, ShaderNodeOutputMaterial, ShaderNodeRGBCurve,
                        ShaderNodeTexImage, ShaderNodeTexSky, ShaderNodeValue,
                        ShaderNodeVertexColor)
 from mmd_uuunyaa_tools import PACKAGE_PATH
@@ -120,9 +120,11 @@ class NodeEditor(ABC):
         if node is None:
             return None
 
-        self.set_node_inputs(node, inputs, force)
         for name, value in properties.items():
             setattr(node, name, value)
+        self.set_node_inputs(node, inputs, force)
+        # Note: Some inputs depend on node's property. e.g. 'A' and 'B' in Mix Color node property 'data_type'(FLOAT/VECTOR/RGBA).
+        #       So, property should be set before connecting inputs.
         return node
 
     def set_node_inputs(self, node: Node, values: Dict[str, Any], force=False) -> Node:
@@ -238,6 +240,9 @@ class MaterialEditor(NodeEditor):
 
     def get_skin_bump_node(self) -> ShaderNodeGroup:
         return self.get_node_group(_('Skin Bump'), label='Skin Bump')
+
+    def get_mix_node(self) -> ShaderNodeMix:
+        return self.get_node(ShaderNodeMix, label='Mix')
 
     def get_fabric_woven_texture_node(self) -> ShaderNodeGroup:
         return self.get_node_group(_('Fabric Woven Texture'), label='Fabric Woven Texture')

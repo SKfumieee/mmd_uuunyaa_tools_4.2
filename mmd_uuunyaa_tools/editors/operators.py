@@ -55,7 +55,6 @@ class SetupRenderEngineForEevee(bpy.types.Operator):
 
     def execute(self, context):
         if context.scene.render.engine != 'BLENDER_EEVEE_NEXT':
-            print(context)
             context.scene.render.engine = 'BLENDER_EEVEE_NEXT'
 
         eevee = context.scene.eevee

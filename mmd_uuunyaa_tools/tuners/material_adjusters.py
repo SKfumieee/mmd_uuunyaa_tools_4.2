@@ -69,13 +69,13 @@ class WetAdjuster(MaterialAdjusterABC):
 
         node_shader = self.find_active_principled_shader_node()
         node_wet_adjuster = self.edit(self.get_wet_adjuster_node(), {
-            'Specular': self.to_link_or_value(node_shader.inputs['Specular']),
+            'Specular': self.to_link_or_value(node_shader.inputs['Specular IOR Level']),
             'Roughness': self.to_link_or_value(node_shader.inputs['Roughness']),
             'Wet': self.edit(self.get_vertex_color_node(), {}, {'location': self.grid_to_position(-4, -10), 'parent': node_frame}).outputs['Color'],
         }, {'location': self.grid_to_position(-2, -10), 'parent': node_frame})
 
         self.edit(node_shader, {
-            'Specular': node_wet_adjuster.outputs['Specular'],
+            'Specular IOR Level': node_wet_adjuster.outputs['Specular'],
             'Roughness': node_wet_adjuster.outputs['Roughness'],
         }, force=True)
 
@@ -85,7 +85,7 @@ class WetAdjuster(MaterialAdjusterABC):
         node_wet_adjuster = self.get_wet_adjuster_node()
 
         self.edit(self.find_active_principled_shader_node(), {
-            'Specular': self.to_link_or_value(node_wet_adjuster.inputs['Specular']),
+            'Specular IOR Level': self.to_link_or_value(node_wet_adjuster.inputs['Specular']),
             'Roughness': self.to_link_or_value(node_wet_adjuster.inputs['Roughness']),
         }, force=True)
 
@@ -115,15 +115,19 @@ class SubsurfaceAdjuster(MaterialAdjusterABC):
         node_subsurface_adjuster = self.find_node(ShaderNodeGroup, label=self.get_name(), node_frame=node_frame)
 
         node_shader = self.find_active_principled_shader_node()
+        node_mix = self.get_mix_node()
         node_subsurface_adjuster = self.edit(self.get_subsurface_adjuster_node(), {
-            'Min': self.to_link_or_value(node_shader.inputs['Subsurface']),
+            'Min': self.to_link_or_value(node_shader.inputs['Subsurface Scale']),
             'Max': 0.300,
-            'Blood Color': self.to_link_or_value(node_shader.inputs['Subsurface Color']),
+            'Blood Color': self.hex_to_rgba(0xE40000),
         }, {'location': self.grid_to_position(-2, -8), 'parent': node_frame})
 
         self.edit(node_shader, {
-            'Subsurface':  node_subsurface_adjuster.outputs['Subsurface'],
-            'Subsurface Color': node_subsurface_adjuster.outputs['Subsurface Color'],
+            'Subsurface Scale': node_subsurface_adjuster.outputs['Subsurface'],
+        }, force=True)
+        self.edit(node_mix, {
+            'Factor': node_subsurface_adjuster.outputs['Subsurface'],
+            'B': node_subsurface_adjuster.outputs['Subsurface Color'],
         }, force=True)
 
         return node_subsurface_adjuster
@@ -132,8 +136,11 @@ class SubsurfaceAdjuster(MaterialAdjusterABC):
         node_subsurface_adjuster = self.get_subsurface_adjuster_node()
 
         self.edit(self.find_active_principled_shader_node(), {
-            'Subsurface': self.to_link_or_value(node_subsurface_adjuster.inputs['Min']),
-            'Subsurface Color': self.to_link_or_value(node_subsurface_adjuster.inputs['Blood Color']),
+            'Subsurface Scale': self.to_link_or_value(node_subsurface_adjuster.inputs['Min']),
+        }, force=True)
+        self.edit(self.get_mix_node(), {
+            'Factor': 0.0,
+            'B': self.to_link_or_value(node_subsurface_adjuster.inputs['Blood Color']),
         }, force=True)
 
         self.nodes.remove(node_subsurface_adjuster)
@@ -160,13 +167,13 @@ class GlitterAdjuster(MaterialAdjusterABC):
 
         node_shader = self.find_active_principled_shader_node()
         node_glitter_adjuster = self.edit(self.get_glitter_adjuster_node(), {
-            'Specular': self.to_link_or_value(node_shader.inputs['Specular']),
+            'Specular': self.to_link_or_value(node_shader.inputs['Specular IOR Level']),
             'Roughness': self.to_link_or_value(node_shader.inputs['Roughness']),
             'Normal': self.to_link_or_value(node_shader.inputs['Normal']),
         }, {'location': self.grid_to_position(-2, -12), 'parent': node_frame})
 
         self.edit(node_shader, {
-            'Specular': node_glitter_adjuster.outputs['Specular'],
+            'Specular IOR Level': node_glitter_adjuster.outputs['Specular'],
             'Roughness': node_glitter_adjuster.outputs['Roughness'],
             'Normal': node_glitter_adjuster.outputs['Normal'],
         }, force=True)
@@ -177,7 +184,7 @@ class GlitterAdjuster(MaterialAdjusterABC):
         node_glitter_adjuster = self.get_glitter_adjuster_node()
 
         self.edit(self.find_active_principled_shader_node(), {
-            'Specular': self.to_link_or_value(node_glitter_adjuster.inputs['Specular']),
+            'Specular IOR Level': self.to_link_or_value(node_glitter_adjuster.inputs['Specular']),
             'Roughness': self.to_link_or_value(node_glitter_adjuster.inputs['Roughness']),
             'Normal': self.to_link_or_value(node_glitter_adjuster.inputs['Normal']),
         }, force=True)
@@ -214,7 +221,7 @@ class EmissionAdjuster(MaterialAdjusterABC):
         }, {'location': self.grid_to_position(-2, -14), 'parent': node_frame})
 
         self.edit(node_shader, {
-            'Emission':  node_emission_adjuster.outputs['Emission'],
+            'Emission Color':    node_emission_adjuster.outputs['Emission'],
             'Emission Strength': node_emission_adjuster.outputs['Emission Strength'],
         }, force=True)
 
@@ -224,7 +231,7 @@ class EmissionAdjuster(MaterialAdjusterABC):
         node_emission_adjuster = self.get_emission_adjuster_node()
 
         self.edit(self.find_active_principled_shader_node(), {
-            'Emission': self.hex_to_rgba(0x000000),
+            'Emission Color': self.hex_to_rgba(0x000000),
             'Emission Strength': 1.000,
         }, force=True)
 
